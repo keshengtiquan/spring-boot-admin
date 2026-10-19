@@ -1,0 +1,10 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: spring-boot-admin
+  profiles:
+    # 打包时由 Maven profile 替换为 dev / prod（见 pom.xml 的 <profiles>）
+    # 若 IDE 直接运行且未走 Maven 资源过滤，可用 -Dspring.profiles.active=dev 覆盖
+    active: @spring.profiles.active@
