@@ -5,10 +5,9 @@ target/
 .kotlin
 .workbuddy
 ### IntelliJ IDEA ###
-.idea/modules.xml
-.idea/jarRepositories.xml
-.idea/compiler.xml
-.idea/libraries/
+# 整个 .idea 目录不入库：里面的 workspace.xml、dataSources.xml 等属于个人 IDE 配置，
+# 提交后容易和队友互相覆盖，dataSources.xml 还可能带出数据库连接信息
+.idea/
 *.iws
 *.iml
 *.ipr
