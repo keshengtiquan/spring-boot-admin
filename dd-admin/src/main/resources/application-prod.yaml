@@ -1,0 +1,59 @@
+# ==================== 生产环境 ====================
+spring:
+  thymeleaf:
+    # 生产开启模板缓存
+    cache: true
+  datasource:
+    # 生产环境使用原生 MySQL 驱动，去掉 p6spy（避免每条 SQL 都经过代理层）
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://${DB_HOST:127.0.0.1}:${DB_PORT:3306}/${DB_NAME:smart_admin_v3}?autoReconnect=true&useServerPreparedStmts=false&rewriteBatchedStatements=true&characterEncoding=UTF-8&useSSL=true&allowMultiQueries=true&serverTimezone=Asia/Shanghai
+    # 敏感信息走环境变量，禁止明文写进仓库
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    druid:
+      initial-size: 5
+      min-idle: 5
+      max-active: 30
+      max-wait: 60000
+      time-between-eviction-runs-millis: 60000
+      min-evictable-idle-time-millis: 300000
+      filters: stat,wall
+      # 生产环境关闭 Druid 监控页
+      stat-view-servlet:
+        enabled: false
+  data:
+    redis:
+      database: 1
+      host: 127.0.0.1
+      port: 6379
+      # password:
+      timeout: 10000ms
+      lettuce:
+        pool:
+          max-active: 5
+          min-idle: 1
+          max-idle: 3
+          max-wait: 30000ms
+
+mybatis-plus:
+  # 指定mapper的存放路径
+  mapper-locations: classpath:mapper/**/*.xml
+  configuration:
+    # 自动驼峰命名规则（camel case）映射
+    map-underscore-to-camel-case: true
+
+logging:
+  level:
+    com.dadaz: info
+
+# 生产环境：关闭 sa-token 操作日志与控制台 banner，减少日志噪音
+sa-token:
+  is-log: false
+  is-print: false
+
+# 生产环境关闭接口文档与 knife4j，避免暴露接口结构
+knife4j:
+  enable: false
+springdoc:
+  api-docs:
+    enabled: false

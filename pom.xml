@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
@@ -11,89 +12,120 @@
     <groupId>com.dadaz</groupId>
     <artifactId>spring-boot-admin</artifactId>
     <version>1.0.0</version>
-    <packaging>jar</packaging>
+    <!-- 聚合工程：只负责模块聚合、版本与 profile 管理，本身不产出 jar -->
+    <packaging>pom</packaging>
 
     <name>spring-boot-admin</name>
+    <description>后端管理平台：dd-base 基础设施层 + dd-admin 启动与接口层</description>
+
+    <modules>
+        <!-- 顺序有意义：dd-admin 依赖 dd-base，Maven 需要先构建 dd-base -->
+        <module>dd-base</module>
+        <module>dd-admin</module>
+    </modules>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!-- 源码级别固定 17，不随本地 JDK 版本漂移 -->
+        <java.version>17</java.version>
         <knife4j.version>4.5.0</knife4j.version>
         <mybatis-plus.version>3.5.12</mybatis-plus.version>
         <p6spy.version>3.9.1</p6spy.version>
         <druid.version>1.2.25</druid.version>
+        <mysql-connector-j.version>9.3.0</mysql-connector-j.version>
+        <sa-token.version>1.44.0</sa-token.version>
+        <spring-security-crypto.version>6.5.1</spring-security-crypto.version>
+        <hutool.version>5.8.39</hutool.version>
+        <redisson.version>3.26.0</redisson.version>
+        <fastjson.version>2.0.48</fastjson.version>
     </properties>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-thymeleaf</artifactId>
-        </dependency>
-        <!--knife4j-->
-        <dependency>
-            <groupId>com.github.xiaoymin</groupId>
-            <artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>
-            <version>${knife4j.version}</version>
-        </dependency>
-        <!--  mybatis-plus  -->
-        <dependency>
-            <groupId>com.baomidou</groupId>
-            <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
-            <version>${mybatis-plus.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>p6spy</groupId>
-            <artifactId>p6spy</artifactId>
-            <version>${p6spy.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.alibaba</groupId>
-            <artifactId>druid-spring-boot-3-starter</artifactId>
-            <version>${druid.version}</version>
-        </dependency>
-        <!-- MySQL 驱动：p6spy / Druid 都只是代理层，最终仍需要真实驱动 -->
-        <dependency>
-            <groupId>com.mysql</groupId>
-            <artifactId>mysql-connector-j</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-    </dependencies>
+    <!--
+      统一版本管理：子模块引用下列依赖时不写 <version>，避免各模块版本不一致
+    -->
+    <dependencyManagement>
+        <dependencies>
+            <!-- 内部模块版本跟随父工程，升级父版本时子模块自动对齐 -->
+            <dependency>
+                <groupId>com.dadaz</groupId>
+                <artifactId>dd-base</artifactId>
+                <version>${project.version}</version>
+            </dependency>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-            </plugin>
-        </plugins>
-        <resources>
-            <!--
-              spring-boot-starter-parent 已把资源过滤占位符设为 @...@，
-              这里显式保留 application*.yaml 的过滤，确保 @spring.profiles.active@ 被打包时替换
-            -->
-            <resource>
-                <directory>src/main/resources</directory>
-                <filtering>true</filtering>
-                <includes>
-                    <include>application*.yaml</include>
-                    <include>application*.yml</include>
-                    <include>application*.properties</include>
-                </includes>
-            </resource>
-            <resource>
-                <directory>src/main/resources</directory>
-                <filtering>false</filtering>
-                <excludes>
-                    <exclude>application*.yaml</exclude>
-                    <exclude>application*.yml</exclude>
-                    <exclude>application*.properties</exclude>
-                </excludes>
-            </resource>
-        </resources>
-    </build>
+            <!--knife4j-->
+            <dependency>
+                <groupId>com.github.xiaoymin</groupId>
+                <artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>
+                <version>${knife4j.version}</version>
+            </dependency>
+            <!--  mybatis-plus  -->
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-bom</artifactId>
+                <version>${mybatis-plus.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>p6spy</groupId>
+                <artifactId>p6spy</artifactId>
+                <version>${p6spy.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>druid-spring-boot-3-starter</artifactId>
+                <version>${druid.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.mysql</groupId>
+                <artifactId>mysql-connector-j</artifactId>
+                <version>${mysql-connector-j.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>cn.dev33</groupId>
+                <artifactId>sa-token-spring-boot3-starter</artifactId>
+                <version>${sa-token.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>cn.dev33</groupId>
+                <artifactId>sa-token-redis-jackson</artifactId>
+                <version>${sa-token.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.security</groupId>
+                <artifactId>spring-security-crypto</artifactId>
+                <version>${spring-security-crypto.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>cn.hutool</groupId>
+                <artifactId>hutool-all</artifactId>
+                <version>${hutool.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.redisson</groupId>
+                <artifactId>redisson-spring-boot-starter</artifactId>
+                <version>${redisson.version}</version>
+                <exclusions>
+                    <!-- 推荐排除：Redisson 自身不使用 actuator，保留易与 Swagger 等工具冲突 -->
+                    <exclusion>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-starter-actuator</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+            <dependency>
+                <groupId>com.alibaba.fastjson2</groupId>
+                <artifactId>fastjson2</artifactId>
+                <version>${fastjson.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <profiles>
         <!-- 开发环境：默认激活，mvn package 即打 dev 包 -->

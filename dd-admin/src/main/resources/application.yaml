@@ -1,0 +1,36 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: spring-boot-admin
+  profiles:
+    # 打包时由 Maven profile 替换为 dev / prod（见 pom.xml 的 <profiles>）
+    # 若 IDE 直接运行且未走 Maven 资源过滤，可用 -Dspring.profiles.active=dev 覆盖
+    active: @spring.profiles.active@
+
+# ==================== Sa-Token 公共配置 ====================
+# 只放与环境无关的项；is-log / is-print 等环境差异项放 application-dev.yaml、application-prod.yaml
+sa-token:
+  # token 名称（同时也是 cookie 名称）
+  token-name: Authorization
+  # token 前缀 例如:Bearer
+  token-prefix: Bearer
+  # token 有效期（单位：秒） 默认30天，-1 代表永久有效
+  timeout: 604800
+  # token 最低活跃频率（单位：秒），如果 token 超过此时间没有访问系统就会被冻结，默认-1 代表不限制，永不冻结
+  active-timeout: 1800
+  # 是否允许同一账号多地同时登录 （为 true 时允许一起登录, 为 false 时新登录挤掉旧登录）
+  is-concurrent: true
+  # 在多人登录同一账号时，是否共用一个 token （为 true 时所有登录共用一个 token, 为 false 时每次登录新建一个 token）
+  is-share: false
+  # token 风格（默认可取值：uuid、simple-uuid、random-32、random-64、random-128、tik）
+  token-style: uuid
+
+# ==================== 验证码配置 ====================
+# 是否开启登录图形验证码：
+#   true  —— 登录必须携带 /auth/captcha 返回的 uuid 及图片中的 code，服务端会校验
+#   false —— 登录忽略验证码字段（本地联调或不需要验证码的部署环境可关闭）
+# 如只在某个环境关闭，可在 application-dev.yaml / application-prod.yaml 中覆盖同名配置
+captcha:
+  enabled: true

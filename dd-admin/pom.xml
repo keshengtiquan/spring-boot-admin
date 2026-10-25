@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.dadaz</groupId>
+        <artifactId>spring-boot-admin</artifactId>
+        <version>1.0.0</version>
+    </parent>
+
+    <artifactId>dd-admin</artifactId>
+    <packaging>jar</packaging>
+
+    <name>dd-admin</name>
+    <description>启动与接口层：启动类、Controller、环境配置、日志配置与模板资源，最终产出可执行 jar</description>
+
+    <dependencies>
+        <!-- 基础设施层：Web、持久层、接口文档等依赖均由其传递而来，此处无需重复声明 -->
+        <dependency>
+            <groupId>com.dadaz</groupId>
+            <artifactId>dd-base</artifactId>
+        </dependency>
+
+        <!-- 页面模板：仅启动模块需要 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
+
+        <!--
+          Lombok：dd-base 中的声明是 optional，不会传递到本模块，
+          因此 dd-admin 下的实体、DTO 需要自己声明一份。
+          版本由 spring-boot-dependencies 统一管理，与 dd-base 保持同版本。
+        -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- 只有启动模块打可执行 jar，dd-base 保持普通 jar 以便被依赖 -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <!-- 显式指定，避免多模块下主类探测出现歧义 -->
+                    <mainClass>com.dadaz.admin.MainApplication</mainClass>
+                </configuration>
+            </plugin>
+        </plugins>
+        <resources>
+            <!--
+              spring-boot-starter-parent 已把资源过滤占位符设为 @...@，
+              这里显式保留 application*.yaml 的过滤，确保 @spring.profiles.active@ 被打包时替换
+            -->
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>application*.yaml</include>
+                    <include>application*.yml</include>
+                    <include>application*.properties</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+                <excludes>
+                    <exclude>application*.yaml</exclude>
+                    <exclude>application*.yml</exclude>
+                    <exclude>application*.properties</exclude>
+                </excludes>
+            </resource>
+        </resources>
+    </build>
+</project>
