@@ -5,12 +5,14 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.ToString;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * 创建用户入参
@@ -18,7 +20,7 @@ import java.io.Serializable;
  * 只承载"客户端可以决定"的字段。以下字段刻意不在本 DTO 中暴露：
  * <ul>
  *   <li>{@code userId}：数据库自增，客户端无权指定；</li>
- *   <li>{@code userType}：服务端固定写 '00'（系统用户）。若开放给前端，
+ *   <li>{@code userType}：服务端固定写 '01'（其他用户）。若开放给前端，
  *       等于允许调用方自行提升账号类型，属于越权隐患；</li>
  *   <li>{@code loginIp} / {@code loginDate}：登录态字段，由服务端维护；</li>
  *   <li>{@code createBy} / {@code createTime} / {@code updateBy} / {@code updateTime}：
@@ -112,4 +114,11 @@ public class UserCreateDTO implements Serializable {
     @Schema(description = "备注", example = "语文教研组")
     @Size(max = 500, message = "备注长度不能超过 500 个字符")
     private String remark;
+
+    /**
+     * 角色 ID 列表，可空。重复 ID 由 Service 去重；有任何一个角色不存在则整体拒绝
+     */
+    @Schema(description = "角色 ID 列表，可空；重复 ID 去重，不存在的角色会拒绝创建", example = "[2]")
+    @Size(max = 50, message = "一次最多关联 50 个角色")
+    private List<@Positive(message = "角色 ID 必须为正整数") Long> roleIds;
 }

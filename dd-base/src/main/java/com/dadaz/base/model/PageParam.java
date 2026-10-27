@@ -59,7 +59,7 @@ public class PageParam {
      * 排序列，多个字段用英文逗号分隔，例如 {@code userName,createTime}
      * <p>
      * 字段名取实体属性名（如 {@code createTime}），也兼容数据库列名（如 {@code create_time}）；
-     * 与若依前端表格组件的 {@code orderByColumn} 参数同名同义，前端可直接透传。
+     * 参数名取 {@code orderByColumn}，前端表格组件可直接透传。
      * <p>
      * <b>不要直接把这里的值拼进 SQL</b>：交给 {@code com.dadaz.base.util.PageSortUtils}
      * 做格式校验与实体字段白名单转换，最终进入 ORDER BY 的只能是实体元数据里的列名。
@@ -69,8 +69,8 @@ public class PageParam {
 
     /**
      * 排序方向：{@code asc} / {@code desc}，多个方向用英文逗号分隔，与 {@link #orderByColumn} 的列一一对应；
-     * 只传一个方向时作用于所有排序列。兼容 Element UI 的 {@code ascending} / {@code descending}，
-     * 也兼容若依前端表格组件同名的 {@code isAsc} 参数。不传时默认 {@code asc}。
+     * 只传一个方向时作用于所有排序列。兼容 {@code ascending} / {@code descending} 两种常见写法，
+     * 也兼容 {@code isAsc} 这一参数名。不传时默认 {@code asc}。
      */
     @Schema(description = "排序方向：asc/desc（兼容 ascending/descending），多列用英文逗号分隔，只有一个方向时作用于所有排序列", example = "desc")
     private String isAsc;

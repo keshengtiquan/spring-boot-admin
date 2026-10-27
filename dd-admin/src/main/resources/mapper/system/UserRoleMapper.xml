@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+    UserRoleDao 的 SQL 映射文件（文件名用 *Mapper.xml 便于按约定检索，
+    真正决定绑定关系的是 namespace，必须是 Mapper 接口的全限定名）
+
+    约定：
+      1. namespace 必须是 Mapper 接口全限定名，否则 Spring 启动时绑定不上；
+      2. 这里只放"自定义 SQL"，单表 CRUD 仍由 BaseMapper 提供；
+      3. 本表的联合主键是 (user_id, role_id)，不要写 selectById / deleteById 这类按单主键的语句。
+
+    XML 位置由 application-dev.yaml / application-prod.yaml 的
+    mybatis-plus.mapper-locations: classpath:mapper/**/*.xml 扫描。
+-->
+<mapper namespace="com.dadaz.admin.module.system.user.dao.UserRoleDao">
+
+    <!--
+        批量写入某用户的角色关联：一条 INSERT + 多行 VALUES。
+        相比 Service 里循环 insert：
+          - 只发 1 条 SQL，省掉 N-1 次网络往返与 SQL 解析；
+          - 仍然走数据库一次事务提交，失败时整批回滚。
+
+        调用契约（由 UserServiceImpl#saveUserRoles 保证）：
+          - roleIds 已去重：重复的 (user_id, role_id) 会撞联合主键；
+          - roleIds 非空：空列表会拼出 "VALUES" 后面什么都没有的非法 SQL。
+
+        注意 <foreach> 里的 #{userId} / #{roleId} 是预编译占位符，
+        不是字符串拼接，不存在 SQL 注入问题。
+    -->
+    <insert id="insertBatch">
+        INSERT INTO `sys_user_role` (`user_id`, `role_id`)
+        VALUES
+        <foreach collection="roleIds" item="roleId" separator=",">
+            (#{userId}, #{roleId})
+        </foreach>
+    </insert>
+
+</mapper>

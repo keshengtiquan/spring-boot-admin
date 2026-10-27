@@ -9,9 +9,9 @@ import com.dadaz.base.model.BaseEntity;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import java.io.Serial;
@@ -20,34 +20,33 @@ import java.time.LocalDateTime;
 /**
  * 系统用户实体，对应表 {@code sys_user}
  * <p>
- * 字段来源：若依 {@code sys_user} 标准结构，按当前项目约定做了两点调整：
+ * 字段来源：{@code sys_user} 通用结构，按当前项目约定做了两点调整：
  * <ul>
  *   <li>审计字段（create_by / create_time / update_by / update_time）由 {@link BaseEntity} 承载，
  *       由 {@code MybatisMetaObjectHandler} 自动填充，本类不再重复声明；</li>
  *   <li>列名一律显式写在 {@code @TableField(value = ...)} 上，不依赖驼峰自动映射。</li>
  * </ul>
  * <p>
- * 为什么不用 {@code @Data}（{@code @Data} = Getter + Setter + RequiredArgsConstructor + ToString + EqualsAndHashCode）：
- * <ol>
- *   <li><b>判等语义错了。</b>{@code @Data} 附带的 {@code @EqualsAndHashCode} 默认 {@code callSuper = false}，
- *       父类 {@link BaseEntity} 的审计字段<b>完全不参与</b>比较（编译时会告警
- *       "Generating equals/hashCode implementation but without a call to superclass"）。
- *       它还会遍历全部业务字段（含 password、avatar、remark），等于把实体当成值对象。
- *       实体应该"同一行数据即同一对象"，因此这里显式按主键比较：{@code of = "userId"}</li>
- *   <li><b>hashCode 不稳定。</b>全字段 hashCode 依赖可变字段，实体一旦被修改，
- *       已放进 {@code HashSet} 或作为 {@code HashMap} key 的对象会"查不到自己"。
- *       只按 userId 算，插入后就不会再变</li>
- *   <li><b>toString 会把密码写进日志。</b>{@code @Data} 的 {@code @ToString} 默认 {@code callSuper = false}，
- *       既看不到审计字段，也无法选择性脱敏。这里用 {@code @ToString(callSuper = true)}
- *       并在 password 上加 {@code @ToString.Exclude}</li>
- *   <li><b>构造器隐患。</b>{@code @Data} 会生成 {@code @RequiredArgsConstructor}。当前没有
- *       final / {@code @NonNull} 字段，生成的是无参构造，暂时无害；但将来一旦加了 final 字段，
- *       隐式无参构造会消失，MyBatis 反射实例化和 Jackson 反序列化会直接失败</li>
- * </ol>
- * 一句话：{@code @Data} 是"四件事打包"的快捷方式，适合纯 DTO / VO；
- * 带父类、带敏感字段、需要明确判等规则的持久化实体应当逐个声明。
+ * 注解说明：类上用 {@code @Data} 简写 getter/setter，但 {@code @Data} 自带的生成物
+ * 对持久化实体并不合适，因此逐项显式覆盖：
+ * <ul>
+ *   <li><b>判等与 hashCode</b>：{@code @EqualsAndHashCode(callSuper = false, of = "userId")}，
+ *       实体应当"同一行数据即同一对象"，只按主键判等，插入后 hashCode 不再变化。
+ *       不能写成 {@code callSuper = true}——{@link BaseEntity} 没有重写 equals/hashCode，
+ *       Lombok 只会生成 {@code super.equals(o)} / {@code super.hashCode()}，实际落到
+ *       {@code Object} 的引用比较，两条"同一行"的实体将永远不相等；
+ *       也不宜用默认的全字段判等（含 password、avatar、remark），改个昵称就不相等，
+ *       等于把实体当成值对象；</li>
+ *   <li><b>toString</b>：{@code @ToString(callSuper = true)} 让日志里能看到审计字段，
+ *       并在 {@code password} 上标 {@code @ToString.Exclude}，防止密码哈希写进日志或异常堆栈。
+ *       注意它只影响 toString，JSON 脱敏由字段上的
+ *       {@code @JsonProperty(access = WRITE_ONLY)} 负责，两者必须同时标注；</li>
+ *   <li><b>构造器</b>：显式 {@code @NoArgsConstructor} 保留 public 无参构造，供 MyBatis 反射实例化
+ *       与 Jackson 反序列化使用；类上存在构造器注解时 {@code @Data} 不再生成
+ *       {@code @RequiredArgsConstructor}，避免将来加了 final 字段后无参构造被悄悄替换。</li>
+ * </ul>
  * <p>
- * 取值约定（与前端 RuoYi-Element 保持一致，改为别的值会导致字典回显错乱）：
+ * 取值约定（这些值是字典回显、状态过滤的依据，改动前必须同步所有读取方）：
  * <table border="1">
  *   <caption>枚举型字段取值</caption>
  *   <tr><th>字段</th><th>取值</th></tr>
@@ -66,8 +65,8 @@ import java.time.LocalDateTime;
  *
  * @author dadaz
  */
-@Getter
-@Setter
+@Data
+@NoArgsConstructor
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = false, of = "userId")
 @TableName("sys_user")
@@ -122,7 +121,7 @@ public class UserEntity extends BaseEntity {
     private String email;
 
     /**
-     * 手机号。注意表列名是 {@code phonenumber}（无下划线，若依原始结构如此），
+     * 手机号。注意表列名是 {@code phonenumber}（无下划线，沿用原始表结构），
      * 而 Java 属性按驼峰命名为 phoneNumber，因此必须显式指定列名
      */
     @Schema(description = "手机号", example = "13800138000")

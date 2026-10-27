@@ -1,7 +1,9 @@
 package com.dadaz.admin.module.system.user.controller;
 
+import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.dadaz.admin.module.system.user.domain.dto.UserCreateDTO;
 import com.dadaz.admin.module.system.user.domain.dto.UserQueryDTO;
+import com.dadaz.admin.module.system.user.domain.dto.UserUpdateDTO;
 import com.dadaz.admin.module.system.user.domain.vo.UserVO;
 import com.dadaz.admin.module.system.user.service.UserService;
 import com.dadaz.base.enums.ResultCode;
@@ -13,13 +15,14 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.web.bind.annotation.*;
 
 /**
  * 系统用户接口
  * <p>
- * 路径与若依前端约定一致（{@code /system/user}），前端无需额外适配。
+ * 路径采用 {@code /system/user}（模块/资源两级），前端按此路径对接即可。
  * <p>
  * <b>关于鉴权</b>：当前项目采用 Sa-Token 注解鉴权模式（见 {@code SaTokenConfigure}），
  * 未标注解的接口默认放行，且登录接口尚未落地。因此本类暂未加 {@code @SaCheckLogin} /
@@ -43,30 +46,22 @@ public class UserController {
 
     /**
      * 创建用户
-     * <p>
-     * 请求示例：
-     * <pre>
-     * POST /system/user
-     * {
-     *   "userName": "zhangsan",
-     *   "nickName": "张三",
-     *   "password": "Abc@123456",
-     *   "deptId": 100,
-     *   "email": "zhangsan@dadaz.com",
-     *   "phoneNumber": "13800138000",
-     *   "sex": "0",
-     *   "remark": "语文教研组"
-     * }
-     * </pre>
      * 成功返回新用户 ID：{@code {"code":200,"message":"创建成功","data":100}}
      *
      * @param dto 创建入参，字段约束见 {@link UserCreateDTO}
      * @return 新用户 ID
      */
-    @PostMapping
+    @PostMapping("/create")
+    @SaCheckPermission("system:user:create")
     @Operation(summary = "创建用户", description = "登录账号全局唯一；密码服务端加密，不接受明文入库")
     public R<Long> create( @Valid @RequestBody UserCreateDTO dto) {
         return R.success("创建成功", userService.createUser(dto));
+    }
+
+    @PostMapping("/update")
+    @SaCheckPermission("system:user:edit")
+    public R<String> update(@Valid @RequestBody UserUpdateDTO dto){
+        return R.success("更新成功", userService.updateUser(dto));
     }
 
     /**
@@ -76,6 +71,7 @@ public class UserController {
      * @return 用户信息，不含密码
      */
     @GetMapping("/{userId}")
+    @SaCheckPermission("system:user:query")
     @Operation(summary = "按 ID 查询用户")
     public R<UserVO> getById(
             @Parameter(description = "用户 ID", example = "100")
@@ -89,8 +85,22 @@ public class UserController {
     }
 
     @GetMapping("/pageList")
+    @SaCheckPermission("system:user:list")
     @Operation(summary = "分页查询用户", description = "支持账号/昵称模糊、状态精确过滤")
     public R<PageResult<UserVO>> getPage(@ParameterObject @Valid UserQueryDTO userQueryDTO) {
         return R.success(userService.queryPage(userQueryDTO));
     }
+
+    @GetMapping("/delete/{userId}")
+    @SaCheckPermission("system:user:delete")
+    @Operation(summary = "删除用户", description = "通过ID删除用户")
+    public R<Long> delete(@PathVariable Long userId){
+        if (userId == null) {
+            // 查不到时统一表述为"不存在"
+            throw new BusinessException("userId 不能为空");
+        }
+        return R.success(userService.delete(userId));
+    }
+
+
 }

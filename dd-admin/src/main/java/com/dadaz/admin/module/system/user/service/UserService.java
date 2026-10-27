@@ -3,6 +3,7 @@ package com.dadaz.admin.module.system.user.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.dadaz.admin.module.system.user.domain.dto.UserCreateDTO;
 import com.dadaz.admin.module.system.user.domain.dto.UserQueryDTO;
+import com.dadaz.admin.module.system.user.domain.dto.UserUpdateDTO;
 import com.dadaz.admin.module.system.user.domain.entity.UserEntity;
 import com.dadaz.admin.module.system.user.domain.vo.UserVO;
 import com.dadaz.base.model.PageResult;
@@ -26,12 +27,14 @@ public interface UserService extends IService<UserEntity> {
      *   <li>登录账号全局唯一（忽略大小写由数据库排序规则保证）；</li>
      *   <li>密码必须 BCrypt 加密后入库，明文不出本方法；</li>
      *   <li>用户类型固定写 '00'（系统用户），不接受调用方指定；</li>
-     *   <li>可空字段未传时按业务默认值补齐，不依赖数据库默认值。</li>
+     *   <li>可空字段未传时按业务默认值补齐，不依赖数据库默认值；</li>
+     *   <li>{@code roleIds} 可选：去重后校验角色是否都存在，创建用户成功后写入
+     *       {@code sys_user_role}；有任一角色不存在则整体拒绝，不产生半成品用户。</li>
      * </ol>
      *
      * @param dto 创建入参，已通过 Bean Validation 校验
      * @return 新用户的 ID
-     * @throws com.dadaz.base.exception.BusinessException 账号已存在时抛出
+     * @throws com.dadaz.base.exception.BusinessException 账号已存在或角色不存在时抛出
      */
     Long createUser(UserCreateDTO dto);
 
@@ -61,4 +64,8 @@ public interface UserService extends IService<UserEntity> {
      * @return 总记录数与当页数据，无命中时 list 为空集合
      */
     PageResult<UserVO> queryPage(UserQueryDTO userQueryDTO);
+
+    Long delete(@Valid Long userId);
+
+    String updateUser(UserUpdateDTO dto);
 }

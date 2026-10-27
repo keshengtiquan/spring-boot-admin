@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+    RoleDeptDao 的 SQL 映射文件（文件名用 *Mapper.xml 便于按约定检索，
+    真正决定绑定关系的是 namespace，必须是 Mapper 接口的全限定名）
+
+    约定：
+      1. namespace 必须是 Mapper 接口全限定名，否则 Spring 启动时绑定不上；
+      2. 这里只放"自定义 SQL"，单表 CRUD 仍由 BaseMapper 提供；
+      3. 本表的联合主键是 (role_id, dept_id)，不要写 selectById / deleteById 这类按单主键的语句。
+
+    XML 位置由 application-dev.yaml / application-prod.yaml 的
+    mybatis-plus.mapper-locations: classpath:mapper/**/*.xml 扫描。
+-->
+<mapper namespace="com.dadaz.admin.module.system.role.dao.RoleDeptDao">
+
+    <!--
+        批量写入角色-部门关联（自定义数据权限）：一条 INSERT + 多行 VALUES。
+
+        调用契约（由 RoleServiceImpl#saveRoleDepts 保证）：
+          - deptIds 已去重：重复的 (role_id, dept_id) 会撞联合主键；
+          - deptIds 非空：空列表会拼出 "VALUES" 后面什么都没有的非法 SQL；
+          - 仅当 data_scope = '2' 时才会调用，其他数据范围不允许写本表。
+
+        注意 <foreach> 里的 #{roleId} / #{deptId} 是预编译占位符，
+        不是字符串拼接，不存在 SQL 注入问题。
+    -->
+    <insert id="insertBatch">
+        INSERT INTO `sys_role_dept` (`role_id`, `dept_id`)
+        VALUES
+        <foreach collection="deptIds" item="deptId" separator=",">
+            (#{roleId}, #{deptId})
+        </foreach>
+    </insert>
+
+</mapper>

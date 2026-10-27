@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS `sys_user`
     `nick_name`   varchar(30)  NOT NULL COMMENT '用户昵称，页面展示用',
     `user_type`   varchar(2)   NOT NULL DEFAULT '00' COMMENT '用户类型：00 系统用户、01 其他注册用户',
     `email`       varchar(50)           DEFAULT '' COMMENT '用户邮箱',
-    `phonenumber` varchar(11)           DEFAULT '' COMMENT '手机号码（列名无下划线，沿用若依原始结构）',
+    `phonenumber` varchar(11)           DEFAULT '' COMMENT '手机号码（列名无下划线，沿用原始表结构）',
     `sex`         char(1)      NOT NULL DEFAULT '0' COMMENT '性别：0 男、1 女、2 未知',
     `avatar`      varchar(100)          DEFAULT '' COMMENT '头像地址',
     `password`    varchar(100) NOT NULL DEFAULT '' COMMENT '密码密文（BCrypt 哈希，禁止明文）',
@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS `sys_user`
 -- 说明（不执行，仅备忘）
 --
 -- 1) 为什么不加外键 dept_id -> sys_dept.dept_id
---    若依体系一贯由应用层保证引用完整性，不加物理外键。原因是外键会让
+--    本项目一贯由应用层保证引用完整性，不加物理外键。原因是外键会让
 --    部门删除、数据迁移、分库分表变得很麻烦，且失败信息对上层不友好。
 --    引用校验放在 Service 层做。
 --

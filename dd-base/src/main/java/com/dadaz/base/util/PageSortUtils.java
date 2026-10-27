@@ -18,14 +18,14 @@ import java.util.regex.Pattern;
 /**
  * 分页排序工具：把前端传的 {@code orderByColumn} / {@code isAsc} 转成 MyBatis-Plus 的 {@link OrderItem}
  * <p>
- * 参数名和格式与若依（RuoYi-Vue-Plus）保持一致，便于前端表格组件直接透传：
+ * 参数名和格式按前端表格组件的常见约定设计，便于直接透传：
  * <pre>
  * ?orderByColumn=userName,createTime&amp;isAsc=asc,desc   → ORDER BY user_name ASC, create_time DESC
  * ?orderByColumn=userName&amp;isAsc=descending             → ORDER BY user_name DESC
  * ?orderByColumn=userId,createTime&amp;isAsc=desc           → ORDER BY user_id DESC, create_time DESC（方向广播）
  * </pre>
  * 之所以还要这一层，是因为 ORDER BY 的列名是<b>拼进 SQL 的字符串</b>，不能直接用前端输入。
- * 这里比若依多做一步实体字段白名单，处理顺序是：
+ * 这里多做一步实体字段白名单，处理顺序是：
  * <ol>
  *   <li><b>标识符校验</b>：每个字段名必须匹配 {@code ^[A-Za-z][A-Za-z0-9_]*$}，
  *       分号、空格、引号、括号、点号等注入常见字符在第一步就被拒掉；</li>

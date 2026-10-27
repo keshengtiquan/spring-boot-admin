@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+    RoleMenuDao 的 SQL 映射文件（文件名用 *Mapper.xml 便于按约定检索，
+    真正决定绑定关系的是 namespace，必须是 Mapper 接口的全限定名）
+
+    约定：
+      1. namespace 必须是 Mapper 接口全限定名，否则 Spring 启动时绑定不上；
+      2. 这里只放"自定义 SQL"，单表 CRUD 仍由 BaseMapper 提供；
+      3. 本表的联合主键是 (role_id, menu_id)，不要写 selectById / deleteById 这类按单主键的语句。
+
+    XML 位置由 application-dev.yaml / application-prod.yaml 的
+    mybatis-plus.mapper-locations: classpath:mapper/**/*.xml 扫描。
+-->
+<mapper namespace="com.dadaz.admin.module.system.role.dao.RoleMenuDao">
+
+    <!--
+        批量写入角色-菜单授权：一条 INSERT + 多行 VALUES。
+
+        调用契约（由 RoleServiceImpl#assignMenus 保证）：
+          - menuIds 已去重：重复的 (role_id, menu_id) 会撞联合主键；
+          - menuIds 非空：空列表表示清空权限，不会调用本方法；
+          - 调用前已删除该角色的旧关联（覆盖式分配）。
+
+        注意 <foreach> 里的 #{roleId} / #{menuId} 是预编译占位符，
+        不是字符串拼接，不存在 SQL 注入问题。
+    -->
+    <insert id="insertBatch">
+        INSERT INTO `sys_role_menu` (`role_id`, `menu_id`)
+        VALUES
+        <foreach collection="menuIds" item="menuId" separator=",">
+            (#{roleId}, #{menuId})
+        </foreach>
+    </insert>
+
+</mapper>
