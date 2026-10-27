@@ -4,8 +4,8 @@ import cn.dev33.satoken.annotation.SaIgnore;
 import cn.hutool.extra.servlet.JakartaServletUtil;
 import com.dadaz.admin.module.system.auth.domain.LoginDTO;
 import com.dadaz.admin.module.system.auth.domain.LoginResultVO;
+import com.dadaz.admin.module.system.auth.domain.CurrentUserInfoVO;
 import com.dadaz.admin.module.system.auth.service.LoginService;
-import com.dadaz.admin.module.system.user.domain.vo.UserVO;
 import com.dadaz.base.model.R;
 import com.dadaz.base.module.captcha.CaptchaService;
 import com.dadaz.base.module.captcha.domain.CaptchaVO;
@@ -54,7 +54,7 @@ public class AuthController {
 
     @GetMapping("/getUserInfo")
     @Operation(summary = "获取登录用户的信息", description = "获取当前登录用户的信息")
-    public R<UserVO> getUserInfo() {
+    public R<CurrentUserInfoVO> getUserInfo() {
         return R.success(loginService.getUserInfo());
     }
 

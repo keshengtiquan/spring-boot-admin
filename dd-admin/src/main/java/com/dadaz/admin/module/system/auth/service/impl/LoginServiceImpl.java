@@ -6,6 +6,8 @@ import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.dadaz.admin.module.system.auth.domain.LoginDTO;
 import com.dadaz.admin.module.system.auth.domain.LoginResultVO;
+import com.dadaz.admin.module.system.auth.domain.CurrentUserInfoVO;
+import com.dadaz.admin.module.system.auth.dao.AuthPermissionDao;
 import com.dadaz.admin.module.system.auth.service.LoginService;
 import com.dadaz.admin.module.system.user.dao.UserDao;
 import com.dadaz.admin.module.system.user.domain.entity.UserEntity;
@@ -42,6 +44,8 @@ public class LoginServiceImpl implements LoginService {
 
     private final UserDao userDao;
 
+    private final AuthPermissionDao authPermissionDao;
+
     private final PasswordEncoder passwordEncoder;
 
     private final CaptchaService captchaService;
@@ -54,9 +58,10 @@ public class LoginServiceImpl implements LoginService {
     /**
      * 构造器注入：依赖显式、字段可 final、单测时直接 new 就能注入替身
      */
-    public LoginServiceImpl(UserDao userDao, PasswordEncoder passwordEncoder,
+    public LoginServiceImpl(UserDao userDao, AuthPermissionDao authPermissionDao, PasswordEncoder passwordEncoder,
                             CaptchaService captchaService, CaptchaProperties captchaProperties) {
         this.userDao = userDao;
+        this.authPermissionDao = authPermissionDao;
         this.passwordEncoder = passwordEncoder;
         this.captchaService = captchaService;
         this.captchaProperties = captchaProperties;
@@ -121,7 +126,7 @@ public class LoginServiceImpl implements LoginService {
     }
 
     @Override
-    public UserVO getUserInfo() {
+    public CurrentUserInfoVO getUserInfo() {
         // loginId 就是 userId（登录时 StpUtil.login(user.getUserId())），直接取当前登录用户 ID
         Long userId = StpUtil.getLoginIdAsLong();
 
@@ -133,9 +138,12 @@ public class LoginServiceImpl implements LoginService {
             throw new BusinessException(ResultCode.UNAUTHORIZED, "登录用户不存在，请重新登录");
         }
 
-        // UserVO 只保留对外字段（userId / userName / nickName / email 等），天然不含 password，
-        // 所以这里直接转换即可
-        return BeanUtil.copyProperties(user, UserVO.class);
+        // UserVO 只保留对外字段，天然不含 password。
+        CurrentUserInfoVO result = new CurrentUserInfoVO();
+        result.setUser(BeanUtil.copyProperties(user, UserVO.class));
+        result.setRoles(authPermissionDao.selectRoleKeys(userId));
+        result.setPermissions(authPermissionDao.selectPermissionCodes(userId));
+        return result;
     }
 
     @Override

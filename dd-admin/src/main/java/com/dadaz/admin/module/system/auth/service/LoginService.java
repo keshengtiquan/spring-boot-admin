@@ -2,7 +2,7 @@ package com.dadaz.admin.module.system.auth.service;
 
 import com.dadaz.admin.module.system.auth.domain.LoginDTO;
 import com.dadaz.admin.module.system.auth.domain.LoginResultVO;
-import com.dadaz.admin.module.system.user.domain.vo.UserVO;
+import com.dadaz.admin.module.system.auth.domain.CurrentUserInfoVO;
 
 /**
  * 登录认证服务
@@ -27,12 +27,12 @@ public interface LoginService {
     /**
      * 获取当前登录用户信息
      * <p>
-     * 返回的是 {@link UserVO}，不含密码等敏感字段。
+     * 返回基本资料、角色标识和权限码，不含密码等敏感字段。
      *
      * @return 当前登录用户信息
      * @throws com.dadaz.base.exception.BusinessException 登录账号已不存在时抛出（会同时清除登录态）
      */
-    UserVO getUserInfo();
+    CurrentUserInfoVO getUserInfo();
 
     /**
      * 退出登录
