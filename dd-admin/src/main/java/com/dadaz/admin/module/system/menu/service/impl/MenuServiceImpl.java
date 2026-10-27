@@ -6,10 +6,12 @@ import com.dadaz.admin.module.system.menu.dao.MenuDao;
 import com.dadaz.admin.module.system.menu.domain.dto.MenuCreateDTO;
 import com.dadaz.admin.module.system.menu.domain.entity.MenuEntity;
 import com.dadaz.admin.module.system.menu.domain.vo.MenuTreeVO;
+import com.dadaz.admin.module.system.menu.domain.vo.MenuRouteVO;
 import com.dadaz.admin.module.system.menu.service.MenuService;
 import com.dadaz.base.enums.StatusEnum;
 import com.dadaz.base.exception.BusinessException;
 import com.dadaz.base.util.StringUtils;
+import cn.dev33.satoken.stp.StpUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -129,6 +131,18 @@ public class MenuServiceImpl extends ServiceImpl<MenuDao, MenuEntity> implements
             }
         }
         return roots;
+    }
+
+    @Override
+    public List<MenuRouteVO> listCurrentUserRoutes() {
+        Long userId = StpUtil.getLoginIdAsLong();
+        List<MenuEntity> menus = baseMapper.selectUserRoutes(userId);
+        if (menus.isEmpty()) {
+            return List.of();
+        }
+        return menus.stream()
+                .map(menu -> BeanUtil.copyProperties(menu, MenuRouteVO.class))
+                .toList();
     }
 
     /**

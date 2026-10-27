@@ -3,6 +3,7 @@ package com.dadaz.admin.module.system.menu.controller;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.dadaz.admin.module.system.menu.domain.dto.MenuCreateDTO;
 import com.dadaz.admin.module.system.menu.domain.vo.MenuTreeVO;
+import com.dadaz.admin.module.system.menu.domain.vo.MenuRouteVO;
 import com.dadaz.admin.module.system.menu.service.MenuService;
 import com.dadaz.base.model.R;
 import io.swagger.v3.oas.annotations.Operation;
@@ -62,5 +63,12 @@ public class MenuController {
     @Operation(summary = "菜单树", description = "含目录/菜单/按钮全部节点，供菜单管理与角色分配菜单使用")
     public R<List<MenuTreeVO>> tree() {
         return R.success(menuService.listTree());
+    }
+
+    /** 当前登录用户可访问路由，平铺返回目录和菜单，不含按钮。 */
+    @GetMapping("/routes")
+    @Operation(summary = "当前用户路由菜单", description = "返回当前用户有效角色获授的可用目录和菜单，平铺列表，不含按钮")
+    public R<List<MenuRouteVO>> routes() {
+        return R.success(menuService.listCurrentUserRoutes());
     }
 }

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 当前登录用户可访问的平铺路由菜单查询。 -->
+<mapper namespace="com.dadaz.admin.module.system.menu.dao.MenuDao">
+
+    <select id="selectUserRoutes"
+            resultType="com.dadaz.admin.module.system.menu.domain.entity.MenuEntity">
+        SELECT DISTINCT m.menu_id,
+                        m.menu_name,
+                        m.parent_id,
+                        m.order_num,
+                        m.path,
+                        m.component,
+                        m.query,
+                        m.is_frame,
+                        m.is_cache,
+                        m.is_affix,
+                        m.menu_type,
+                        m.visible,
+                        m.status,
+                        m.perms,
+                        m.icon,
+                        m.create_by,
+                        m.create_time,
+                        m.update_by,
+                        m.update_time,
+                        m.remark
+        FROM sys_user u
+        JOIN sys_user_role ur ON ur.user_id = u.user_id
+        JOIN sys_role r ON r.role_id = ur.role_id
+        JOIN sys_role_menu rm ON rm.role_id = r.role_id
+        JOIN sys_menu m ON m.menu_id = rm.menu_id
+        WHERE u.user_id = #{userId}
+          AND u.status = '0'
+          AND r.status = '0'
+          AND m.status = '0'
+          AND m.menu_type IN ('M', 'C')
+        ORDER BY m.parent_id, m.order_num, m.menu_id
+    </select>
+
+</mapper>

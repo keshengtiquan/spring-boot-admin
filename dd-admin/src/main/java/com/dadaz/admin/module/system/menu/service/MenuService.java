@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.dadaz.admin.module.system.menu.domain.dto.MenuCreateDTO;
 import com.dadaz.admin.module.system.menu.domain.entity.MenuEntity;
 import com.dadaz.admin.module.system.menu.domain.vo.MenuTreeVO;
+import com.dadaz.admin.module.system.menu.domain.vo.MenuRouteVO;
 
 import java.util.List;
 
@@ -48,4 +49,7 @@ public interface MenuService extends IService<MenuEntity> {
      * @return 顶级节点列表，无数据时为空列表
      */
     List<MenuTreeVO> listTree();
+
+    /** 当前登录用户通过已启用角色获授的路由菜单，按平铺列表返回，不含按钮。 */
+    List<MenuRouteVO> listCurrentUserRoutes();
 }
